@@ -518,6 +518,7 @@ impl App {
             request_reload_config: false,
             request_client_config_reload: false,
             request_clipboard_write: None,
+            creating_new_workspace: false,
             creating_new_tab: false,
             requested_new_tab_name: None,
             rename_pane_target: None,
@@ -898,6 +899,7 @@ impl App {
                         },
                     ),
                 );
+                self.open_new_workspace_dialog_for_active();
                 needs_render = true;
             }
 

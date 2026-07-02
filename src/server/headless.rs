@@ -636,6 +636,8 @@ impl HeadlessServer {
                     message = %error.message,
                     "failed to create workspace"
                 );
+            } else {
+                self.app.open_new_workspace_dialog_for_active();
             }
             needs_render = true;
             crate::render_prof::event("full_render_cause.deferred_new_workspace");
@@ -4286,6 +4288,9 @@ mod tests {
 
         assert!(server.handle_deferred_requests_headless());
         assert!(!server.app.state.request_new_workspace);
+        assert_eq!(server.app.state.mode, app::Mode::RenameWorkspace);
+        assert!(server.app.state.creating_new_workspace);
+        assert!(server.app.state.name_input_replace_on_type);
         assert_eq!(
             event_hub
                 .events_after(0)

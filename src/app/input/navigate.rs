@@ -118,7 +118,7 @@ impl App {
                         },
                     ),
                 );
-                leave_navigate_mode(&mut self.state);
+                self.open_new_workspace_dialog_for_active();
             }
             NavigateAction::NewWorktree => {
                 if let Some(ws_idx) = workspace_action_target(&self.state, context).filter(|idx| {
@@ -2335,7 +2335,10 @@ last_pane = "prefix+tab"
         app.handle_navigate_key(TerminalKey::new(KeyCode::Char('N'), KeyModifiers::empty()));
 
         assert_eq!(app.state.workspaces.len(), 2);
-        assert_eq!(app.state.mode, Mode::Terminal);
+        assert_eq!(app.state.mode, Mode::RenameWorkspace);
+        assert!(app.state.creating_new_workspace);
+        assert_eq!(app.state.selected, 1);
+        assert!(app.state.name_input_replace_on_type);
     }
 
     #[tokio::test]
