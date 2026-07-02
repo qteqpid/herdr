@@ -317,6 +317,7 @@ pub(super) fn open_rename_workspace(
     terminal_runtimes: &crate::terminal::TerminalRuntimeRegistry,
     ws_idx: usize,
 ) {
+    state.creating_new_workspace = false;
     state.selected = ws_idx;
     state.rename_pane_target = None;
     state.name_input =
@@ -325,7 +326,34 @@ pub(super) fn open_rename_workspace(
     state.mode = Mode::RenameWorkspace;
 }
 
+pub(crate) fn open_new_workspace_dialog(
+    state: &mut AppState,
+    terminal_runtimes: &crate::terminal::TerminalRuntimeRegistry,
+    ws_idx: usize,
+) {
+    state.creating_new_workspace = true;
+    state.creating_new_tab = false;
+    state.requested_new_tab_name = None;
+    state.selected = ws_idx;
+    state.rename_pane_target = None;
+    state.name_input =
+        state.workspaces[ws_idx].display_name_from(&state.terminals, terminal_runtimes);
+    state.name_input_replace_on_type = true;
+    state.mode = Mode::RenameWorkspace;
+}
+
+impl App {
+    pub(crate) fn open_new_workspace_dialog_for_active(&mut self) {
+        if let Some(ws_idx) = self.state.active {
+            if ws_idx < self.state.workspaces.len() {
+                open_new_workspace_dialog(&mut self.state, &self.terminal_runtimes, ws_idx);
+            }
+        }
+    }
+}
+
 pub(super) fn open_rename_active_tab(state: &mut AppState, replace_on_type: bool) {
+    state.creating_new_workspace = false;
     state.creating_new_tab = false;
     state.requested_new_tab_name = None;
     state.rename_pane_target = None;
@@ -346,6 +374,7 @@ pub(super) fn open_rename_pane(state: &mut AppState, pane_id: crate::layout::Pan
         return;
     };
     let terminal = state.terminals.get(&pane.attached_terminal_id);
+    state.creating_new_workspace = false;
     state.creating_new_tab = false;
     state.requested_new_tab_name = None;
     state.rename_pane_target = Some(pane_id);
@@ -365,6 +394,7 @@ fn next_new_tab_default_name(state: &AppState) -> String {
 }
 
 pub(super) fn open_new_tab_dialog(state: &mut AppState) {
+    state.creating_new_workspace = false;
     state.creating_new_tab = true;
     state.requested_new_tab_name = None;
     state.rename_pane_target = None;
@@ -501,6 +531,7 @@ pub(super) fn apply_rename_action(state: &mut AppState, action: ModalAction) {
                 }
                 _ => {}
             }
+            state.creating_new_workspace = false;
             state.creating_new_tab = false;
             state.rename_pane_target = None;
             state.name_input.clear();
@@ -512,6 +543,7 @@ pub(super) fn apply_rename_action(state: &mut AppState, action: ModalAction) {
             state.name_input_replace_on_type = false;
         }
         ModalAction::Cancel => {
+            state.creating_new_workspace = false;
             state.creating_new_tab = false;
             state.requested_new_tab_name = None;
             state.rename_pane_target = None;
@@ -1274,6 +1306,7 @@ impl App {
 }
 
 fn cancel_rename_modal(state: &mut AppState) {
+    state.creating_new_workspace = false;
     state.creating_new_tab = false;
     state.requested_new_tab_name = None;
     state.rename_pane_target = None;
